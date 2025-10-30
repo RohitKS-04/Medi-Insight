@@ -3,6 +3,7 @@ uvicorn
 python-multipart
 tensorflow
 numpy
+pandas
 joblib
 scikit-learn
 
