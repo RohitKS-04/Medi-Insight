@@ -5,6 +5,14 @@ from typing import List
 import joblib
 import tensorflow as tf
 import pandas as pd
+import os
+from dotenv import load_dotenv
+import requests
+
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
 
 # Load static files
 desc_df = pd.read_csv("data/symptom_Description[1].csv")
@@ -29,7 +37,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",        # local frontend
+        "http://127.0.0.1:3000",       # local frontend
+        "https://medi-insight-cx9l.onrender.com",  # deployed frontend
+        ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -70,3 +82,33 @@ async def predict_disease(data: SymptomInput):
             "precautions": precautions
         })
     return {"predictions":results}
+
+@app.post("/ask-ai")
+async def ask_ai(data: dict):
+    user_input = data.get("prompt", "")
+
+    if not user_input:
+        return {"error": "No user prompt provided."}
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+
+    body = {
+        "contents": [
+            {"parts": [{"text": user_input}]}
+        ]
+    }
+
+    try:
+        response = requests.post(url, json=body)
+        response_data = response.json()
+
+        ai_text = (
+            response_data.get("candidates", [{}])[0]
+            .get("content", {})
+            .get("parts", [{}])[0]
+            .get("text", "No response")
+        )
+
+        return {"reply": ai_text}
+    except Exception as e:
+        return {"error": str(e)}

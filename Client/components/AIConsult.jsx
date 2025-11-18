@@ -64,49 +64,26 @@ const AIConsult = () => {
   };
 
   async function getAIReply(userInput) {
-    const apiKey = "AIzaSyCIVkg_iZpOkR9yMFedOUg7KoK-pq3X1zA"; // Replace with your actual Gemini API key
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-    // Healthcare-focused prompt, including disclaimer
-    const prompt = `
-You are a helpful and concise healthcare assistant. Respond in 5-10 short sentences with clear, simple language and give it in point wise.
-
-Important: This AI does not replace professional medical advice. Always consult a doctor for diagnosis and treatment. keep disclaimer in one sentence
-
+    try {
+      const res = await fetch(
+        "https://your-render-domain.onrender.com/ask-ai",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: `
+You are a helpful health assistant.
 User: ${userInput}
 AI:
-`;
+`,
+          }),
+        }
+      );
 
-    const payload = {
-      contents: [{ parts: [{ text: prompt }] }],
-    };
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-
-      const data = await response.json();
-
-      const aiText =
-        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "No response from AI.";
-
-      // Basic formatting — keep plain text for typing effect
-      const formatted = aiText
-        .replace(/\*\*(.*?)\*\*/g, "$1")
-        .replace(/\*(.*?)\*/g, "$1")
-        .replace(/(?:\r\n|\r|\n)/g, "\n");
-
-      return formatted;
-    } catch (error) {
-      console.error("Error fetching from Gemini:", error);
-      return "Failed to get response from AI.";
+      const data = await res.json();
+      return data.reply || "No response";
+    } catch (e) {
+      return "Server error";
     }
   }
 
