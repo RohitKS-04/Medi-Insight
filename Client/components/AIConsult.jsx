@@ -65,20 +65,17 @@ const AIConsult = () => {
 
   async function getAIReply(userInput) {
     try {
-      const res = await fetch(
-        "https://your-render-domain.onrender.com/ask-ai",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            prompt: `
+      const res = await fetch("https://medi-insight.onrender.com/ask-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: `
 You are a helpful health assistant.
 User: ${userInput}
 AI:
 `,
-          }),
-        }
-      );
+        }),
+      });
 
       const data = await res.json();
       return data.reply || "No response";
